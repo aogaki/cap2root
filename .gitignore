@@ -1,0 +1,111 @@
+# Build directories
+build/
+Build/
+BUILD/
+bin/
+obj/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+cap2root
+capdump
+test_converter
+test_file_structure
+test_plain_data
+check_positions
+test_correct_format
+
+# ROOT files
+*.root
+*.root.*
+
+# Cap'n Proto generated files
+*.capnp.c++
+*.capnp.h
+
+# Data files (optional - uncomment if you don't want to track data)
+*.cap
+*.dat
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Python (for scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Test output
+test_output*.root
+Testing/
+
+# Logs
+*.log
+
+# Package files
+*.tar.gz
+*.zip
+*.7z
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# builder_sphere (external dependency)
+builder_sphere/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
