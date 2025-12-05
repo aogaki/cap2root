@@ -7,7 +7,16 @@
 class TreeData
 { // no getter setter.  using public member variables.
 public:
-  TreeData(){};
+  TreeData()
+    : Mod(0)
+    , Ch(0)
+    , TimeStamp(0)
+    , FineTS(0.0)
+    , ChargeLong(0)
+    , ChargeShort(0)
+    , Extras(0)
+    , RecordLength(0)
+  {};
 
   TreeData(uint32_t nSamples)
   {

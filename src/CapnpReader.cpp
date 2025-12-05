@@ -59,12 +59,13 @@ std::vector<TreeData> CapnpReader::ReadNextPacket() {
                     TreeData data;
                     data.Mod = event.getBoard();
                     data.Ch = event.getChannel();
-                    data.ChargeLong = event.getEnergy();
                     data.TimeStamp = event.getTimestamp();
+                    data.ChargeLong = event.getEnergy();
                     data.ChargeShort = 0;
-                    data.FineTS = 0.0;
                     data.Extras = 0;
                     data.RecordLength = 0;
+                    // FineTS should be TimeStamp * 1000
+                    data.FineTS = static_cast<double>(data.TimeStamp) * 1000.0;
                     results.push_back(data);
                 }
                 break;
@@ -79,7 +80,8 @@ std::vector<TreeData> CapnpReader::ReadNextPacket() {
                     data.ChargeLong = event.getEnergy();
                     data.TimeStamp = event.getTimestamp();
                     data.ChargeShort = static_cast<uint16_t>(event.getPsd() * 1000);
-                    data.FineTS = event.getPsd();
+                    // FineTS should be TimeStamp * 1000, not PSD value
+                    data.FineTS = static_cast<double>(data.TimeStamp) * 1000.0;
                     data.Extras = 0;
                     data.RecordLength = 0;
                     results.push_back(data);
@@ -96,7 +98,7 @@ std::vector<TreeData> CapnpReader::ReadNextPacket() {
                     data.ChargeLong = event.getEnergy();
                     data.TimeStamp = event.getTimestamp();
                     data.ChargeShort = 0;
-                    data.FineTS = 0.0;
+                    data.FineTS = data.TimeStamp * 1000.0;
                     data.Extras = 0;
 
                     auto wave = event.getWaveform1();
@@ -119,7 +121,7 @@ std::vector<TreeData> CapnpReader::ReadNextPacket() {
                     data.ChargeLong = event.getEnergy();
                     data.TimeStamp = event.getTimestamp();
                     data.ChargeShort = 0;
-                    data.FineTS = 0.0;
+                    data.FineTS = data.TimeStamp * 1000.0;
                     data.Extras = 0;
 
                     auto wave1 = event.getWaveform1();
@@ -147,7 +149,8 @@ std::vector<TreeData> CapnpReader::ReadNextPacket() {
                     data.ChargeLong = event.getEnergy();
                     data.TimeStamp = event.getTimestamp();
                     data.ChargeShort = static_cast<uint16_t>(event.getPsd() * 1000);
-                    data.FineTS = event.getPsd();
+                    // FineTS should be TimeStamp * 1000, not PSD value
+                    data.FineTS = static_cast<double>(data.TimeStamp) * 1000.0;
                     data.Extras = 0;
 
                     auto wave1 = event.getWaveform1();
@@ -176,6 +179,10 @@ std::vector<TreeData> CapnpReader::ReadNextPacket() {
                     data.TimeStamp = event.getTimestamp();
                     data.ChargeShort = 0;
                     data.FineTS = event.getFineTimestamp();
+                    // If FineTS is empty (0), use TimeStamp * 1000
+                    if (data.FineTS == 0.0) {
+                        data.FineTS = data.TimeStamp * 1000.0;
+                    }
                     data.Extras = 0;
                     data.RecordLength = 0;
                     results.push_back(data);
