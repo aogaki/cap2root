@@ -2,7 +2,7 @@
 
 RootWriter::RootWriter(const std::string& filename) {
     file_ = std::make_unique<TFile>(filename.c_str(), "RECREATE");
-    tree_ = new TTree("tree", "Converted data from Cap'n Proto");
+    tree_ = new TTree("ELIADE_Tree", "Converted data from ROSPHER");
 
     // Setup branches
     tree_->Branch("Mod", &data_.Mod, "Mod/b");

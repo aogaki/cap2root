@@ -4,6 +4,9 @@ project(cap2root)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Try to find TBB for parallel algorithms (Linux)
+find_package(TBB QUIET)
+
 # Find ROOT
 find_package(ROOT REQUIRED COMPONENTS RIO Tree)
 include(${ROOT_USE_FILE})
@@ -56,6 +59,13 @@ target_link_libraries(cap2root
     ${ROOT_LIBRARIES}
     ${CAPNP_LIBRARIES}
 )
+# Link TBB if available (for parallel sort on Linux)
+if(TBB_FOUND)
+    target_link_libraries(cap2root TBB::tbb)
+    message(STATUS "TBB found - parallel sorting enabled")
+else()
+    message(STATUS "TBB not found - using sequential sort")
+endif()
 
 # Cap'n Proto dump utility
 add_executable(capdump
@@ -119,4 +129,16 @@ add_executable(test_correct_format
 )
 target_link_libraries(test_correct_format
     ${CAPNP_LIBRARIES}
+)
+
+# Install targets
+install(TARGETS cap2root capdump
+    RUNTIME DESTINATION bin
+    COMPONENT applications
+)
+
+# Install documentation
+install(FILES README.md
+    DESTINATION share/doc/cap2root
+    COMPONENT documentation
 )

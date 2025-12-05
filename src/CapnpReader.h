@@ -3,10 +3,11 @@
 
 #include <string>
 #include <vector>
-#include <fstream>
+#include <memory>
 #include <capnp/message.h>
 #include <capnp/serialize.h>
 #include <capnp/serialize-packed.h>
+#include <kj/io.h>
 #include "eventProto.capnp.h"
 #include "../TreeData.h"
 
@@ -23,6 +24,8 @@ public:
 
 private:
     int fd_ = -1;
+    std::unique_ptr<kj::FdInputStream> fdStream_;
+    std::unique_ptr<kj::BufferedInputStreamWrapper> bufferedStream_;
 };
 
 #endif

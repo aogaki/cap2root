@@ -1,11 +1,15 @@
 #include <iostream>
 #include <string>
+#include <vector>
+#include <algorithm>
+#include <execution>
 #include "CapnpReader.h"
 #include "RootWriter.h"
 
 void printUsage(const char* progName) {
     std::cout << "Usage: " << progName << " <input.cap> <output.root>\n";
     std::cout << "Convert Cap'n Proto files to ROOT format\n";
+    std::cout << "Events are sorted by timestamp before writing.\n";
 }
 
 int main(int argc, char** argv) {
@@ -25,35 +29,64 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    RootWriter writer(outputFile);
-
+    // Read all events into memory
+    std::cout << "Reading events from Cap'n Proto file...\n";
+    std::vector<TreeData> allEvents;
     int packetCount = 0;
-    int eventCount = 0;
 
     while (reader.HasNext()) {
         auto events = reader.ReadNextPacket();
         if (events.empty()) {
-            break; // End of file
+            break;
         }
 
-        for (const auto& event : events) {
-            writer.Fill(event);
-            eventCount++;
-        }
+        allEvents.insert(allEvents.end(), events.begin(), events.end());
         packetCount++;
 
         if (packetCount % 100 == 0) {
-            std::cout << "Processed " << packetCount << " packets, "
-                      << eventCount << " events\r" << std::flush;
+            std::cout << "Read " << packetCount << " packets, "
+                      << allEvents.size() << " events\r" << std::flush;
         }
     }
 
     reader.Close();
+
+    std::cout << "\nRead complete. Total events: " << allEvents.size() << "\n";
+    std::cout << "Sorting events by timestamp...\n";
+
+    // Sort by timestamp using parallel execution policy when available
+#ifdef __cpp_lib_parallel_algorithm
+    std::sort(std::execution::par_unseq, allEvents.begin(), allEvents.end(),
+              [](const TreeData& a, const TreeData& b) {
+                  return a.TimeStamp < b.TimeStamp;
+              });
+    std::cout << "Sorting complete (parallel sort used).\n";
+#else
+    std::sort(allEvents.begin(), allEvents.end(),
+              [](const TreeData& a, const TreeData& b) {
+                  return a.TimeStamp < b.TimeStamp;
+              });
+    std::cout << "Sorting complete (sequential sort used).\n";
+#endif
+    std::cout << "Writing to ROOT file...\n";
+
+    // Write sorted events to ROOT file
+    RootWriter writer(outputFile);
+
+    for (size_t i = 0; i < allEvents.size(); i++) {
+        writer.Fill(allEvents[i]);
+
+        if ((i + 1) % 100000 == 0) {
+            std::cout << "Written " << (i + 1) << " / " << allEvents.size()
+                      << " events\r" << std::flush;
+        }
+    }
+
     writer.Close();
 
     std::cout << "\nConversion complete!\n";
-    std::cout << "Total packets: " << packetCount << "\n";
-    std::cout << "Total events: " << eventCount << "\n";
+    std::cout << "Total packets read: " << packetCount << "\n";
+    std::cout << "Total events written: " << allEvents.size() << "\n";
 
     return 0;
 }
