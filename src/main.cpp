@@ -2,9 +2,6 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#ifdef __linux__
-#include <parallel/algorithm>
-#endif
 #include "CapnpReader.h"
 #include "RootWriter.h"
 
@@ -71,19 +68,11 @@ int main(int argc, char** argv) {
     std::cout << "Sorting events by timestamp...\n";
 
     // Sort by timestamp
-#ifdef __linux__
-    __gnu_parallel::sort(allEvents.begin(), allEvents.end(),
-                         [](const std::unique_ptr<TreeData>& a, const std::unique_ptr<TreeData>& b) {
-                             return a->TimeStamp < b->TimeStamp;
-                         });
-    std::cout << "Sorting complete (GNU parallel sort used).\n";
-#else
     std::sort(allEvents.begin(), allEvents.end(),
               [](const std::unique_ptr<TreeData>& a, const std::unique_ptr<TreeData>& b) {
                   return a->TimeStamp < b->TimeStamp;
               });
     std::cout << "Sorting complete.\n";
-#endif
     std::cout << "Writing to ROOT file...\n";
 
     // Write sorted events to ROOT file
