@@ -31,9 +31,21 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Read all events into memory
+    // Count total events first
+    std::cout << "Counting total events...\n";
+    size_t totalEvents = reader.CountTotalEvents();
+    std::cout << "Total events to read: " << totalEvents << "\n";
+
+    // Reopen file for reading
+    if (!reader.Open(inputFile)) {
+        std::cerr << "Error: Cannot reopen input file " << inputFile << "\n";
+        return 1;
+    }
+
+    // Read all events into memory with exact capacity
     std::cout << "Reading events from Cap'n Proto file...\n";
-    std::vector<TreeData> allEvents;
+    std::vector<std::unique_ptr<TreeData>> allEvents;
+    allEvents.reserve(totalEvents);
     int packetCount = 0;
 
     while (reader.HasNext()) {
@@ -42,7 +54,9 @@ int main(int argc, char** argv) {
             break;
         }
 
-        allEvents.insert(allEvents.end(), events.begin(), events.end());
+        allEvents.insert(allEvents.end(),
+                        std::make_move_iterator(events.begin()),
+                        std::make_move_iterator(events.end()));
         packetCount++;
 
         if (packetCount % 100 == 0) {
@@ -59,14 +73,14 @@ int main(int argc, char** argv) {
     // Sort by timestamp
 #ifdef __linux__
     __gnu_parallel::sort(allEvents.begin(), allEvents.end(),
-                         [](const TreeData& a, const TreeData& b) {
-                             return a.TimeStamp < b.TimeStamp;
+                         [](const std::unique_ptr<TreeData>& a, const std::unique_ptr<TreeData>& b) {
+                             return a->TimeStamp < b->TimeStamp;
                          });
     std::cout << "Sorting complete (GNU parallel sort used).\n";
 #else
     std::sort(allEvents.begin(), allEvents.end(),
-              [](const TreeData& a, const TreeData& b) {
-                  return a.TimeStamp < b.TimeStamp;
+              [](const std::unique_ptr<TreeData>& a, const std::unique_ptr<TreeData>& b) {
+                  return a->TimeStamp < b->TimeStamp;
               });
     std::cout << "Sorting complete.\n";
 #endif
@@ -76,7 +90,7 @@ int main(int argc, char** argv) {
     RootWriter writer(outputFile);
 
     for (size_t i = 0; i < allEvents.size(); i++) {
-        writer.Fill(allEvents[i]);
+        writer.Fill(*allEvents[i]);
 
         if ((i + 1) % 100000 == 0) {
             std::cout << "Written " << (i + 1) << " / " << allEvents.size()

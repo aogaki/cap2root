@@ -4,6 +4,11 @@ project(cap2root)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Find OpenMP for GNU parallel algorithms on Linux
+if(UNIX AND NOT APPLE)
+    find_package(OpenMP REQUIRED)
+endif()
+
 # Try to find TBB for parallel algorithms (Linux)
 find_package(TBB QUIET)
 
@@ -59,12 +64,16 @@ target_link_libraries(cap2root
     ${ROOT_LIBRARIES}
     ${CAPNP_LIBRARIES}
 )
+# Link OpenMP for GNU parallel sort on Linux
+if(UNIX AND NOT APPLE)
+    target_link_libraries(cap2root OpenMP::OpenMP_CXX)
+    message(STATUS "OpenMP found - GNU parallel sorting enabled")
+endif()
+
 # Link TBB if available (for parallel sort on Linux)
 if(TBB_FOUND)
     target_link_libraries(cap2root TBB::tbb)
-    message(STATUS "TBB found - parallel sorting enabled")
-else()
-    message(STATUS "TBB not found - using sequential sort")
+    message(STATUS "TBB found")
 endif()
 
 # Cap'n Proto dump utility

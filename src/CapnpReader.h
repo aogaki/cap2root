@@ -19,8 +19,9 @@ public:
     bool Open(const std::string& filename);
     void Close();
     bool HasNext() const;
-    std::vector<TreeData> ReadNextPacket();
+    std::vector<std::unique_ptr<TreeData>> ReadNextPacket();
     void DumpPacket(int packetNum, bool verbose = false);
+    size_t CountTotalEvents();  // Count total events in file
 
 private:
     int fd_ = -1;
